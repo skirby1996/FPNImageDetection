@@ -335,7 +335,7 @@ if __name__ == '__main__':
         class InferenceConfig(CrackConfig):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
-            GPU_COUNT = 1
+            GPU_COUNT = 0
             IMAGES_PER_GPU = 1
         config = InferenceConfig()
     config.display()
