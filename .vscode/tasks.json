@@ -1,0 +1,17 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Train model a new model on crack dataset with imagenet weights",
+            "type": "shell",
+            "command": "python Models/Crack/Crack.py train --dataset=Datasets/Crackset --weights=imagenet"
+        },
+        {
+            "label": "Run inference with the crack model",
+            "type": "shell",
+            "command": "python Models/Crack/Crack.py tag --image=Datasets/crackset_micro/train/001.jpg --weights=logs/crack20180606T1438/faster_rcnn_crack_0005.h5"
+        }
+    ]
+}
