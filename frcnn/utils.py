@@ -1,11 +1,16 @@
 import random
+import shutil
 
+import urllib.request
 import numpy as np
 import skimage.color
 import skimage.io
 import skimage.transform
 import tensorflow as tf
 from keras import backend as K
+
+# URL from which to dowload the latest COCO trained weights
+COCO_MODEL_URL = "https://github.com/matterport/Mask_RCNN/releases/download/v2.0/mask_rcnn_coco.h5"
 
 ##################
 # Bounding Boxes #
@@ -530,3 +535,16 @@ def batch_slice(inputs, graph_fn, batch_size, names=None):
         result = result[0]
 
     return result
+
+def download_trained_weights(coco_model_path, verbose=1):
+    '''
+    Download COCO trained weights
+    Arguments
+        coco_model_path: Local path to the COCO weights
+    '''
+    if verbose > 0:
+        print("Downloading pretrained model to " + coco_model_path + "...")
+    with urllib.request.urlopen(COCO_MODEL_URL) as resp, open(coco_model_path, 'wb') as out:
+        shutil.copyfileobj(resp, out)
+    if verbose > 0:
+        print("... done downloading model")

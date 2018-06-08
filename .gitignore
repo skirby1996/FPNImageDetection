@@ -5,3 +5,5 @@ azureml-logs
 Datasets
 SimpleClassification.py
 logs
+output
+mask_rcnn_coco.h5

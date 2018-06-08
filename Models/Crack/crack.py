@@ -37,8 +37,8 @@ sys.path.append(ROOT_DIR)  # To find local version of the library
 from frcnn.config import Config
 from frcnn import model as modellib, utils
 
-# Path to trained weights file
-WEIGHTS_PATH = None
+# Path to COCO trained weights file
+COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 
 # Directory to save logs and model checkpoints, if not provided
 # through the command line argument --logs
@@ -50,9 +50,10 @@ DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
 
 
 class CrackConfig(Config):
-    """Configuration for training on the toy  dataset.
+    '''
+    Configuration for training on the crack dataset.
     Derives from the base Config class and overrides some values.
-    """
+    '''
     # Give the configuration a recognizable name
     NAME = "crack"
 
@@ -275,7 +276,8 @@ def detect_and_tag_images(model, image_path=None, video_path=None):
         tagged = tag_detections(image, r['rois'], r['class_ids'], r['scores'])
         # Save output
         file_name = "tagged_{:%Y%m%dT%H%M%S}.png".format(datetime.datetime.now())
-        skimage.io.imsave(file_name, tagged)
+        out_path = os.path.join(os.path.join(ROOT_DIR, "output"), file_name)
+        skimage.io.imsave(out_path, tagged)
     elif video_path:
         # Video tagging not implemented
         pass
@@ -335,7 +337,7 @@ if __name__ == '__main__':
         class InferenceConfig(CrackConfig):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
-            GPU_COUNT = 0
+            GPU_COUNT = 1
             IMAGES_PER_GPU = 1
         config = InferenceConfig()
     config.display()
@@ -369,8 +371,8 @@ if __name__ == '__main__':
         # Exclude the last layers because they require a matching
         # number of classes
         model.load_weights(weights_path, by_name=True, exclude=[
-            "mrcnn_class_logits", "mrcnn_bbox_fc",
-            "mrcnn_bbox", "mrcnn_mask"])
+            "frcnn_class_logits", "frcnn_bbox_fc",
+            "frcnn_bbox"])
     else:
         model.load_weights(weights_path, by_name=True)
 
