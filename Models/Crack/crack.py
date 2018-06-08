@@ -73,7 +73,7 @@ class CrackConfig(Config):
     VALIDATION_STEPS = 19
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_MIN_CONFIDENCE = 0.8
 
     TRAIN_ROIS_PER_IMAGE = 25
     MAX_GT_INSTANCES = 15
@@ -243,6 +243,7 @@ def tag_detections(image, rois, class_ids, scores):
             roi = rois[ix]
             ul_corner = (roi[1], roi[0])
             br_corner = (roi[3], roi[2])
+            print("Box #{}: UL(y1: {}, x1: {}, y2: {}, x2: {})".format(ix, roi[0], roi[1], roi[2], roi[3]))
 
             # Display bbox
             cv2.rectangle(img, ul_corner, br_corner, (0,0,255), thickness=2)
