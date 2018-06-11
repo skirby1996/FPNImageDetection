@@ -16,7 +16,12 @@
         {
             "label": "Run inference with the crack model",
             "type": "shell",
-            "command": "python Models/Crack/Crack.py tag --image=Datasets/crackset_micro/val/001.jpg --weights=logs/crack20180608T0911/faster_rcnn_crack_0020.h5"
+            "command": "python Models/Crack/Crack.py tag --image=Datasets/crack001.jpg --weights=logs/crack20180608T0911/faster_rcnn_crack_0020.h5"
+        },
+        {
+            "label": "Download images and configure annotations for an ImageNet sysnet",
+            "type": "shell",
+            "command": "python imagenet_utils/imagenet_anno_reader.py"
         }
     ]
 }
