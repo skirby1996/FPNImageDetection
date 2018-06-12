@@ -19,6 +19,16 @@
             "command": "python Models/Crack/Crack.py tag --image=Datasets/crack001.jpg --weights=logs/crack20180608T0911/faster_rcnn_crack_0020.h5"
         },
         {
+            "label": "Train a model on the person dataset with imagenet weights",
+            "type": "shell",
+            "command": "python Models/People/people.py train --dataset=Datasets/PeoplePlantAnimal --weights=imagenet"
+        },
+        {
+            "label": "Run inference with person model",
+            "type": "shell",
+            "command": "python Models/People/people.py tag --image=Datasets/People/val/n00007846_162149.jpg --weights=logs/person20180612T1031/faster_rcnn_person_0004.h5"
+        },
+        {
             "label": "Download images and configure annotations for an ImageNet sysnet",
             "type": "shell",
             "command": "python imagenet_utils/imagenet_anno_reader.py"
