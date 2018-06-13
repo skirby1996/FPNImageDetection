@@ -8,8 +8,11 @@ import random
 import xml.etree.ElementTree as ET
 
 # Wordnet ID for bboxes to extract
-wnid_list = ['n00007846', 'n00015388', 'n00017222']
-
+wnid_list = [
+	'n03642806', 'n03001627', 'n03179701', 'n04379964', 'n03842156',
+	'n04190052', 'n03085013', 'n03793489', 'n03782006', 'n03995265', 
+	'n03180011', 'n04004767', 'n03222318', 'n04589593']
+	
 # Train/Test split
 train_test_split = 0.15
 
@@ -50,7 +53,7 @@ for wnid in wnid_list:
 	retries = 5
 	while retries > 0:
 		try:
-			response = requests.get(map_url)
+			response = requests.get(map_url, timeout=30.)
 			image_map = response.text.split("\n")
 			del response
 			retries = 0
@@ -70,23 +73,32 @@ for wnid in wnid_list:
 	print("Attempting to download {} images for synset: {}...".format(len(image_map), wnid))
 	for ix, line in enumerate(image_map):
 		prog = int(20. * (ix + 1) / len(image_map))
-		sys.stdout.write("\r{}/{} - <{}{}>".format(ix + 1, len(image_map), "=" * prog, "." * (20 - prog)))
+		sys.stdout.write("\r{}/{} - [{}{}>".format(ix + 1, len(image_map), "=" * prog, "." * (20 - prog)))
 		sys.stdout.flush()
 		if line == '':
 			continue
-		else:
-			line = line.split(' ')
-			if "Annotation/{}/{}.xml".format(wnid, line[0]) in files:
-				# Try to download image
-				img_url = line[1]
-				response = requests.get(img_url, stream=True)
-				if not response.history:
-					# URL was valid, download image and add ID to valid IDs
-					img_file_path = os.path.join(out_dir, "{}.jpg".format(line[0]))
-					with open(img_file_path, 'wb') as out_file:
-						shutil.copyfileobj(response.raw, out_file)
-						valid_image_ids.append(line[0])
+		
+		line = line.split(' ')
+		if "Annotation/{}/{}.xml".format(wnid, line[0]) in files:
+			# Try to download image
+			img_url = line[1]
+			try:
+				response = requests.get(img_url, timeout=1., stream=True)
+				if response.history:
+					# URL was redirected, skip
+					continue
+				if not 'image' in response.headers['content-type']: 
+					# URL is not an image, skip
+					continue
+				# URL was valid, download image and add ID to valid IDs
+				img_file_path = os.path.join(out_dir, "{}.jpg".format(line[0]))
+				with open(img_file_path, 'wb') as out_file:
+					shutil.copyfileobj(response.raw, out_file)
+					valid_image_ids.append(line[0])
 				del response
+			except:
+				pass
+				# Bad URL, skip and continue
 	print("\nSuccesfully downloaded {}/{} images...".format(len(valid_image_ids) - last_ix, len(image_map)))
 	last_ix = len(valid_image_ids)
 print("Succesfully gathered {} images from {} synsets".format(last_ix, len(wnid_list)))
