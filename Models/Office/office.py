@@ -49,13 +49,13 @@ DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
 ##################
 
 
-class PersonConfig(Config):
+class OfficeConfig(Config):
     '''
     Configuration for training on the person dataset.
     Derives from the base Config class and overrides some values.
     '''
     # Give the configuration a recognizable name
-    NAME = "person"
+    NAME = "Office"
 
     GPU_COUNT = 1
 
@@ -64,13 +64,13 @@ class PersonConfig(Config):
     IMAGES_PER_GPU = 1
 
     # Number of classes (including background)
-    NUM_CLASSES = 3 + 1  # Background + person + plant + animal
+    NUM_CLASSES = 14 + 1  # 14 classes + Background
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 499
+    STEPS_PER_EPOCH = 2972
 
     # Validation steps
-    VALIDATION_STEPS = 88
+    VALIDATION_STEPS = 524
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.8
@@ -83,24 +83,61 @@ class PersonConfig(Config):
 ###########
 
 # TODO: Encapsulate this in dataset object
+# n03642806 - laptop
+# n03001627 - chair
+# n03179701 - desk
+# n04379964 - table
+# n03842156 - filing cabinet
+# n04190052 - shelf
+# n03085013 - keyboard
+# n03793489 - mouse
+# n03782006 - monitor
+# n03995265 - power cord
+# n03180011 - desktop computer
+# n04004767 - printer
+# n03222318 - door
+# n04589593 - window
+
 class_map = {
-    "n00007846": 1,
-    "n00015388": 2,
-    "n00017222": 3
+    "n03642806": 1,
+    "n03001627": 2,
+    "n03179701": 3,
+    "n04379964": 4,
+    "n03842156": 5,
+    "n04190052": 6,
+    "n03085013": 7,
+    "n03793489": 8,
+    "n03782006": 9,
+    "n03995265": 10,
+    "n03180011": 11,
+    "n04004767": 12,
+    "n03222318": 13,
+    "n04589593": 14,
 }
 
-class ThisDataset(utils.Dataset):
+class OfficeDataset(utils.Dataset):
 
-    def load_this(self, dataset_dir, subset):
+    def load_office(self, dataset_dir, subset):
         '''
-        Load a subset of the person dataset.
+        Load a subset of the Office dataset.
         dataset_dir: Root directory of the dataset.
         subset: Subset to load: train or val
         '''
         # Add classes. We have only one class to add.
-        self.add_class("PersonPlantAnimal", 1, "n00007846")
-        self.add_class("PersonPlantAnimal", 2, "n00015388")
-        self.add_class("PersonPlantAnimal", 3, "n00017222")
+        self.add_class("Office", 1, "n03642806")
+        self.add_class("Office", 2, "n03001627")
+        self.add_class("Office", 3, "n03179701")
+        self.add_class("Office", 4, "n04379964")
+        self.add_class("Office", 5, "n03842156")
+        self.add_class("Office", 6, "n04190052")
+        self.add_class("Office", 7, "n03085013")
+        self.add_class("Office", 8, "n03793489")
+        self.add_class("Office", 9, "n03782006")
+        self.add_class("Office", 10, "n03995265")
+        self.add_class("Office", 11, "n03180011")
+        self.add_class("Office", 12, "n04004767")
+        self.add_class("Office", 13, "n03222318")
+        self.add_class("Office", 14, "n04589593")
 
         # Train or validation dataset?
         assert subset in ["train", "val"]
@@ -146,7 +183,7 @@ class ThisDataset(utils.Dataset):
             height, width = image.shape[:2]
 
             self.add_image(
-                "PersonPlantAnimal",
+                "Office",
                 image_id=a['filename'],  # use file name as a unique image id
                 path=image_path,
                 width=width, height=height,
@@ -162,7 +199,7 @@ class ThisDataset(utils.Dataset):
         '''
         # If not a dataset image, delegate to parent class.
         image_info = self.image_info[image_id]
-        if image_info["source"] != "PersonPlantAnimal":
+        if image_info["source"] != "Office":
             return super(self.__class__, self).load_mask(image_id)
 
         # Convert polygons to a bitmap mask of shape
@@ -202,7 +239,7 @@ class ThisDataset(utils.Dataset):
     def image_reference(self, image_id):
         # Return the path of the image
         info = self.image_info[image_id]
-        if info["source"] == "PersonPlantAnimal":
+        if info["source"] == "Office":
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
@@ -210,13 +247,13 @@ class ThisDataset(utils.Dataset):
 
 def train(model):
     # Training dataset.
-    dataset_train = ThisDataset()
-    dataset_train.load_this(args.dataset, "train")
+    dataset_train = OfficeDataset()
+    dataset_train.load_office(args.dataset, "train")
     dataset_train.prepare()
 
     # Validation dataset
-    dataset_val = ThisDataset()
-    dataset_val.load_this(args.dataset, "val")
+    dataset_val = OfficeDataset()
+    dataset_val.load_office(args.dataset, "val")
     dataset_val.prepare()
 
     # *** This training schedule is an example. Update to your needs ***
@@ -343,9 +380,9 @@ if __name__ == '__main__':
 
     # Configurations
     if args.command == "train":
-        config = PersonConfig()
+        config = OfficeConfig()
     else:
-        class InferenceConfig(PersonConfig):
+        class InferenceConfig(OfficeConfig):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
