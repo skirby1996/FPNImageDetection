@@ -190,39 +190,39 @@ for ix, id in enumerate(valid_image_ids):
 			test_ids.remove(id)
 		else:
 			train_ids.remove(id)
-		continue
-	
-	# Build dict to convert to JSON
-	img = {}
-	img['fileref'] = id
-	img['size'] = os.path.getsize(os.path.join(out_dir, "{}.jpg".format(id))) 
-	img['filename'] = "{}.jpg".format(id)
-	img['base64_img_data'] = ""
-	img['file_attributes'] = {}
-	regions = {}
-	region = {}
-	shape_att = {}
-	shape_att['name'] = "rect"
-	shape_att['x'] = bbox_x
-	shape_att['y'] = bbox_y
-	shape_att['width'] = bbox_w
-	shape_att['height'] = bbox_h
-	region_att = {}
-	region_att['object_name'] = id_spl[0]
-	region['shape_attributes'] = shape_att
-	region['region_attributes'] = region_att
-	regions['a'] = region
-	img['regions'] = regions
-	
-	# Write image info to the corresponding dict and move image to the proper folder
-
-	if id in test_ids:
-		test_dict[id] = img
-		dest_image_path = os.path.join(test_dir, "{}.jpg".format(id))
+		os.remove(src_image_path)
 	else:
-		train_dict[id] = img
-		dest_image_path = os.path.join(train_dir, "{}.jpg".format(id))
-	shutil.move(src_image_path, dest_image_path)
+		# Build dict to convert to JSON
+		img = {}
+		img['fileref'] = id
+		img['size'] = os.path.getsize(os.path.join(out_dir, "{}.jpg".format(id))) 
+		img['filename'] = "{}.jpg".format(id)
+		img['base64_img_data'] = ""
+		img['file_attributes'] = {}
+		regions = {}
+		region = {}
+		shape_att = {}
+		shape_att['name'] = "rect"
+		shape_att['x'] = bbox_x
+		shape_att['y'] = bbox_y
+		shape_att['width'] = bbox_w
+		shape_att['height'] = bbox_h
+		region_att = {}
+		region_att['object_name'] = id_spl[0]
+		region['shape_attributes'] = shape_att
+		region['region_attributes'] = region_att
+		regions['a'] = region
+		img['regions'] = regions
+		
+		# Write image info to the corresponding dict and move image to the proper folder
+
+		if id in test_ids:
+			test_dict[id] = img
+			dest_image_path = os.path.join(test_dir, "{}.jpg".format(id))
+		else:
+			train_dict[id] = img
+			dest_image_path = os.path.join(train_dir, "{}.jpg".format(id))
+		shutil.move(src_image_path, dest_image_path)
 print("Finished generating annotations, writing them to the disk...")
 	
 # Write JSON to their respective files
