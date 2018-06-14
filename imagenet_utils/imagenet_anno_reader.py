@@ -91,7 +91,7 @@ for wnid in wnid_list:
 	retries = 5
 	while retries > 0:
 		try:
-			response = requests.get(map_url, timeout=30.)
+			response = requests.get(map_url)
 			image_map = response.text.split("\n")
 			del response
 			retries = 0
@@ -162,7 +162,7 @@ print("Generating JSON from annotations...")
 for ix, id in enumerate(valid_image_ids):
 
 	prog = int(20. * (ix + 1) / len(valid_image_ids))
-	sys.stdout.write("\r{}/{} - [{}>{}]".format(ix + 1, len(image_map), "=" * prog, "." * (20 - prog)))
+	sys.stdout.write("\r{}/{} - [{}>{}]".format(ix + 1, len(valid_image_ids), "=" * prog, "." * (20 - prog)))
 	sys.stdout.flush()
 	
 	src_image_path = os.path.join(out_dir, "{}.jpg".format(id))
