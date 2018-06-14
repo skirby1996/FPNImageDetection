@@ -5,6 +5,8 @@ import tarfile
 import requests
 import json
 import random
+import struct
+import imghdr
 import xml.etree.ElementTree as ET
 
 # Wordnet ID for bboxes to extract
@@ -29,6 +31,42 @@ if not os.path.exists(train_dir):
 	os.mkdir(train_dir)
 if not os.path.exists(test_dir):
 	os.mkdir(test_dir)
+
+# Helper method to get image dims
+def get_image_size(fname):
+    #Determine the image type of fhandle and return its size.
+    #from draco
+    with open(fname, 'rb') as fhandle:
+        head = fhandle.read(24)
+        if len(head) != 24:
+            return
+        if imghdr.what(fname) == 'png':
+            check = struct.unpack('>i', head[4:8])[0]
+            if check != 0x0d0a1a0a:
+                return
+            width, height = struct.unpack('>ii', head[16:24])
+        elif imghdr.what(fname) == 'gif':
+            width, height = struct.unpack('<HH', head[6:10])
+        elif imghdr.what(fname) == 'jpeg':
+            try:
+                fhandle.seek(0) # Read 0xff next
+                size = 2
+                ftype = 0
+                while not 0xc0 <= ftype <= 0xcf:
+                    fhandle.seek(size, 1)
+                    byte = fhandle.read(1)
+                    while ord(byte) == 0xff:
+                        byte = fhandle.read(1)
+                    ftype = ord(byte)
+                    size = struct.unpack('>H', fhandle.read(2))[0] - 2
+                # We are at a SOFn block
+                fhandle.seek(1, 1)  # Skip `precision' byte.
+                height, width = struct.unpack('>HH', fhandle.read(4))
+            except Exception: #IGNORE:W0703
+                return
+        else:
+            return
+        return width, height	
 
 # Extract annotation file
 annotations = tarfile.open(anno_path)
@@ -121,6 +159,8 @@ test_dict = {}
 
 print("Generating JSON from annotations...")
 for id in valid_image_ids:
+	
+	src_image_path = os.path.join(out_dir, "{}.jpg".format(id))
 	id_spl = id.split('_')
 	
 	target_file = "{}.tar.gz".format(id_spl[0])
@@ -135,6 +175,19 @@ for id in valid_image_ids:
 	root = tree.getroot()
 	bbox = root[5][4]
 	
+	# Verify bounding box data, throw away image if bbox exceeds image dims
+	img_w, img_h = get_image_size(src_image_path)
+	bbox_x = int(bbox[0].text)
+	bbox_y = int(bbox[1].text)
+	bbox_w = int(bbox[2].text) - int(bbox[0].text)
+	bbox_h = int(bbox[3].text) - int(bbox[1].text)
+	if (bbox_x + bbox_w >= img_w) or (bbox_y + bbox_h >= imw_h):
+		if id in test_ids:
+			test_ids.remove(id)
+		else:
+			train_ids.remove(id)
+		continue
+	
 	# Build dict to convert to JSON
 	img = {}
 	img['fileref'] = id
@@ -146,10 +199,10 @@ for id in valid_image_ids:
 	region = {}
 	shape_att = {}
 	shape_att['name'] = "rect"
-	shape_att['x'] = int(bbox[0].text)
-	shape_att['y'] = int(bbox[1].text)
-	shape_att['width'] = int(bbox[2].text) - int(bbox[0].text)
-	shape_att['height'] = int(bbox[3].text) - int(bbox[1].text)
+	shape_att['x'] = bbox_x
+	shape_att['y'] = bbox_y
+	shape_att['width'] = bbox_w
+	shape_att['height'] = bbox_h
 	region_att = {}
 	region_att['object_name'] = id_spl[0]
 	region['shape_attributes'] = shape_att
@@ -158,7 +211,7 @@ for id in valid_image_ids:
 	img['regions'] = regions
 	
 	# Write image info to the corresponding dict and move image to the proper folder
-	src_image_path = os.path.join(out_dir, "{}.jpg".format(id))
+
 	if id in test_ids:
 		test_dict[id] = img
 		dest_image_path = os.path.join(test_dir, "{}.jpg".format(id))
