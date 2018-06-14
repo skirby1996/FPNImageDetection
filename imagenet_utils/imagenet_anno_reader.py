@@ -104,6 +104,7 @@ for wnid in wnid_list:
 					user_input = input("Try again? (y/n) ")
 				if user_input.lower() == 'n':
 					raise
+				retries = 5
 	print("URL map downloaded")
 
 	# Parse file mapping url and download images, throw away files if they
