@@ -111,7 +111,7 @@ for wnid in wnid_list:
 	print("Attempting to download {} images for synset: {}...".format(len(image_map), wnid))
 	for ix, line in enumerate(image_map):
 		prog = int(20. * (ix + 1) / len(image_map))
-		sys.stdout.write("\r{}/{} - [{}{}>".format(ix + 1, len(image_map), "=" * prog, "." * (20 - prog)))
+		sys.stdout.write("\r{}/{} - [{}>{}]".format(ix + 1, len(image_map), "=" * prog, "." * (20 - prog)))
 		sys.stdout.flush()
 		if line == '':
 			continue
@@ -158,7 +158,11 @@ test_json_path = os.path.join(test_dir, "via_region_data.json")
 test_dict = {}
 
 print("Generating JSON from annotations...")
-for id in valid_image_ids:
+for ix, id in enumerate(valid_image_ids):
+
+	prog = int(20. * (ix + 1) / len(valid_image_ids))
+	sys.stdout.write("\r{}/{} - [{}>{}]".format(ix + 1, len(image_map), "=" * prog, "." * (20 - prog)))
+	sys.stdout.flush()
 	
 	src_image_path = os.path.join(out_dir, "{}.jpg".format(id))
 	id_spl = id.split('_')
@@ -181,7 +185,7 @@ for id in valid_image_ids:
 	bbox_y = int(bbox[1].text)
 	bbox_w = int(bbox[2].text) - int(bbox[0].text)
 	bbox_h = int(bbox[3].text) - int(bbox[1].text)
-	if (bbox_x + bbox_w >= img_w) or (bbox_y + bbox_h >= imw_h):
+	if (bbox_x + bbox_w >= img_w) or (bbox_y + bbox_h >= img_h):
 		if id in test_ids:
 			test_ids.remove(id)
 		else:
@@ -226,3 +230,4 @@ with open(train_json_path, 'w') as train_json_file:
 	with open(test_json_path, 'w') as test_json_file:
 		train_json_file.write(json.dumps(train_dict))
 		test_json_file.write(json.dumps(test_dict))
+print("Execution finished, final test/train split:\ntrain[{}]\ttest[{}]".format(len(train_ids), len(test_ids)))
